@@ -1,0 +1,2 @@
+# Shared WebBlock Postgres. Use a normal (non-superuser) role so Row-Level Security applies.
+DATABASE_URL=postgres://webblock_site:password@localhost:5432/webblock

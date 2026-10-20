@@ -1,0 +1,27 @@
+{
+  "pages": {
+    "/": {
+      "root": {"props": {"title": "Kampot Clay Studio", "theme": "clay"}},
+      "content": [
+        {"type": "Navbar", "props": {"id": "nav-1", "brand": "Kampot Clay Studio", "links": [{"label": "Shop", "href": "/shop"}, {"label": "Contact", "href": "#contact"}], "sticky": true}},
+        {"type": "Hero", "props": {"id": "hero-1", "heading": "Handmade Cambodian pottery", "subheading": "Wheel-thrown in Kampot, fired with local clay.", "ctaLabel": "Shop now", "ctaHref": "/shop", "align": "center", "paddingY": 64}},
+        {"type": "ProductDescription", "props": {"id": "desc-1", "title": "About our pottery", "body": "Each piece is shaped by hand and glazed with natural ash.", "materials": "Kampot river clay"}},
+        {"type": "ProductGallery", "props": {"id": "gallery-1", "title": "Featured pieces", "columns": 3, "currency": "USD", "products": [
+          {"name": "Lotus Tea Cup", "description": "A small cup for jasmine tea.", "price": 12, "image": "/images/lotus-cup.jpg"},
+          {"name": "Mekong Serving Bowl", "description": "A wide bowl glazed river blue.", "price": 38, "image": "/images/mekong-bowl.jpg"},
+          {"name": "Angkor Vase", "description": "Tall vase with carved temple motifs.", "price": 65, "image": "/images/angkor-vase.jpg"}
+        ]}},
+        {"type": "Testimonial", "props": {"id": "testimonial-1", "quote": "The most beautiful cups I own.", "author": "Sokha"}},
+        {"type": "ContactForm", "props": {"id": "contact-1", "heading": "Order a custom piece", "submitLabel": "Send"}},
+        {"type": "Footer", "props": {"id": "footer-1", "text": "© Kampot Clay Studio", "links": []}}
+      ]
+    },
+    "/shop": {
+      "root": {"props": {"title": "Shop"}},
+      "content": [
+        {"type": "Heading", "props": {"id": "shop-heading", "text": "All pottery", "level": 1, "align": "left"}},
+        {"type": "ProductCard", "props": {"id": "card-plate", "name": "Rice Plate", "price": 18, "currency": "USD"}}
+      ]
+    }
+  }
+}

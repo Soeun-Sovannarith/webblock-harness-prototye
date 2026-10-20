@@ -1,0 +1,47 @@
+# CI that the harness waits on for every job branch (webblock/job-*).
+# Each *job name* becomes a check-run name; they must match REQUIRED_CHECKS_* in the harness.
+# Runs on GitHub's isolated runners: generated code never executes on the harness host,
+# and no WebBlock credentials are available here.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: ["webblock/job-*"]
+permissions:
+  contents: read
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps: [{uses: actions/checkout@v4}, {uses: actions/setup-node@v4, with: {node-version: 22, cache: npm}}, {run: npm ci}, {run: npx prettier --check .}]
+  typecheck:
+    runs-on: ubuntu-latest
+    steps: [{uses: actions/checkout@v4}, {uses: actions/setup-node@v4, with: {node-version: 22, cache: npm}}, {run: npm ci}, {run: npx tsc --noEmit}]
+  lint:
+    runs-on: ubuntu-latest
+    steps: [{uses: actions/checkout@v4}, {uses: actions/setup-node@v4, with: {node-version: 22, cache: npm}}, {run: npm ci}, {run: npm run lint}]
+  test:
+    runs-on: ubuntu-latest
+    steps: [{uses: actions/checkout@v4}, {uses: actions/setup-node@v4, with: {node-version: 22, cache: npm}}, {run: npm ci}, {run: npm test -- --ci}]
+  build:
+    runs-on: ubuntu-latest
+    steps: [{uses: actions/checkout@v4}, {uses: actions/setup-node@v4, with: {node-version: 22, cache: npm}}, {run: npm ci}, {run: npm run build}]
+  integration-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_PASSWORD: postgres}
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env: {DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"}
+    steps: [{uses: actions/checkout@v4}, {uses: actions/setup-node@v4, with: {node-version: 22, cache: npm}}, {run: npm ci}, {run: npm run db:migrate --if-present}, {run: npm run test:integration --if-present}]
+  migration-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_PASSWORD: postgres}
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env: {DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"}
+    steps: [{uses: actions/checkout@v4}, {uses: actions/setup-node@v4, with: {node-version: 22, cache: npm}}, {run: npm ci}, {run: npm run db:migrate --if-present}]

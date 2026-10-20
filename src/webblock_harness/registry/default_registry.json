@@ -1,0 +1,256 @@
+{
+  "version": 1,
+  "root": {
+    "name": "Root",
+    "label": "Page settings",
+    "fields": {
+      "title": {"type": "text", "required": true, "max_length": 120, "semantic": "title"},
+      "description": {"type": "textarea", "max_length": 300},
+      "theme": {"type": "select", "category": "style", "options": ["light", "dark", "earth", "clay"]},
+      "accentColor": {"type": "color", "category": "style"}
+    },
+    "default_props": {"title": "Untitled page"}
+  },
+  "components": [
+    {
+      "name": "Navbar",
+      "label": "Navigation bar",
+      "aliases": ["nav", "navigation", "menu", "header"],
+      "capabilities": ["navigation"],
+      "source_path": "src/components/webblock/Navbar.tsx",
+      "export_name": "Navbar",
+      "fields": {
+        "brand": {"type": "text", "required": true, "max_length": 80, "semantic": "title"},
+        "logo": {"type": "image"},
+        "links": {"type": "array", "item_fields": {
+          "label": {"type": "text", "required": true, "max_length": 40},
+          "href": {"type": "url", "required": true}
+        }},
+        "sticky": {"type": "boolean", "category": "layout"}
+      },
+      "default_props": {"brand": "My shop", "links": [], "sticky": true}
+    },
+    {
+      "name": "Hero",
+      "label": "Hero banner",
+      "aliases": ["hero", "banner", "hero section", "intro"],
+      "capabilities": ["static_content"],
+      "source_path": "src/components/webblock/Hero.tsx",
+      "export_name": "Hero",
+      "fields": {
+        "heading": {"type": "text", "required": true, "max_length": 120, "semantic": "title"},
+        "subheading": {"type": "textarea", "max_length": 300},
+        "image": {"type": "image"},
+        "ctaLabel": {"type": "text", "max_length": 40},
+        "ctaHref": {"type": "url"},
+        "align": {"type": "select", "category": "layout", "options": ["left", "center", "right"]},
+        "backgroundColor": {"type": "color", "category": "style"},
+        "paddingY": {"type": "number", "category": "style", "min": 0, "max": 256}
+      },
+      "default_props": {"heading": "Welcome", "align": "center", "paddingY": 64}
+    },
+    {
+      "name": "Heading",
+      "label": "Heading",
+      "aliases": ["title", "headline"],
+      "capabilities": ["static_content"],
+      "source_path": "src/components/webblock/Heading.tsx",
+      "export_name": "Heading",
+      "fields": {
+        "text": {"type": "text", "required": true, "max_length": 200, "semantic": "title"},
+        "level": {"type": "select", "category": "style", "options": [1, 2, 3, 4]},
+        "align": {"type": "select", "category": "layout", "options": ["left", "center", "right"]},
+        "color": {"type": "color", "category": "style"}
+      },
+      "default_props": {"text": "Heading", "level": 2, "align": "left"}
+    },
+    {
+      "name": "Text",
+      "label": "Text block",
+      "aliases": ["paragraph", "text", "copy"],
+      "capabilities": ["static_content"],
+      "source_path": "src/components/webblock/Text.tsx",
+      "export_name": "Text",
+      "fields": {
+        "text": {"type": "textarea", "required": true, "max_length": 5000},
+        "align": {"type": "select", "category": "layout", "options": ["left", "center", "right"]},
+        "size": {"type": "select", "category": "style", "options": ["sm", "md", "lg"]}
+      },
+      "default_props": {"text": "Write something about your business.", "align": "left", "size": "md"}
+    },
+    {
+      "name": "Button",
+      "label": "Button",
+      "aliases": ["button", "cta", "call to action", "link button"],
+      "capabilities": ["navigation"],
+      "source_path": "src/components/webblock/Button.tsx",
+      "export_name": "Button",
+      "fields": {
+        "label": {"type": "text", "required": true, "max_length": 40},
+        "href": {"type": "url", "required": true},
+        "variant": {"type": "select", "category": "style", "options": ["primary", "secondary", "ghost"]}
+      },
+      "default_props": {"label": "Learn more", "href": "#", "variant": "primary"}
+    },
+    {
+      "name": "Image",
+      "label": "Image",
+      "aliases": ["image", "photo", "picture"],
+      "capabilities": ["static_content"],
+      "source_path": "src/components/webblock/Image.tsx",
+      "export_name": "Image",
+      "fields": {
+        "src": {"type": "image", "required": true},
+        "alt": {"type": "text", "required": true, "max_length": 200},
+        "rounded": {"type": "boolean", "category": "style"}
+      },
+      "default_props": {"src": "/placeholder.png", "alt": "Placeholder image"}
+    },
+    {
+      "name": "ProductDescription",
+      "label": "Product description",
+      "aliases": ["product description", "description", "about the product", "product details"],
+      "capabilities": ["static_content", "commerce_display"],
+      "source_path": "src/components/webblock/ProductDescription.tsx",
+      "export_name": "ProductDescription",
+      "fields": {
+        "title": {"type": "text", "required": true, "max_length": 120, "semantic": "title"},
+        "body": {"type": "textarea", "required": true, "max_length": 5000},
+        "materials": {"type": "text", "max_length": 200},
+        "price": {"type": "number", "min": 0, "semantic": "price"},
+        "currency": {"type": "select", "options": ["USD", "KHR"], "semantic": "currency"}
+      },
+      "default_props": {"title": "About this piece", "body": "Describe how this piece is made.", "currency": "USD"}
+    },
+    {
+      "name": "ProductGallery",
+      "label": "Product gallery",
+      "aliases": ["product gallery", "gallery", "products", "product grid", "shop grid", "catalog"],
+      "capabilities": ["commerce_display"],
+      "source_path": "src/components/webblock/ProductGallery.tsx",
+      "export_name": "ProductGallery",
+      "fields": {
+        "title": {"type": "text", "max_length": 120, "semantic": "title"},
+        "source": {"type": "select", "category": "behavior", "options": ["database", "manual"], "label": "Products shown on the website"},
+        "columns": {"type": "select", "category": "layout", "options": [2, 3, 4]},
+        "currency": {"type": "select", "options": ["USD", "KHR"], "semantic": "currency"},
+        "products": {"type": "array", "label": "Products (preview; live products come from the Business Portal)", "item_fields": {
+          "name": {"type": "text", "required": true, "max_length": 120, "semantic": "title"},
+          "description": {"type": "textarea", "max_length": 1000},
+          "price": {"type": "number", "required": true, "min": 0, "semantic": "price"},
+          "image": {"type": "image"},
+          "badge": {"type": "text", "max_length": 30}
+        }}
+      },
+      "default_props": {"title": "Our products", "columns": 3, "currency": "USD", "products": []}
+    },
+    {
+      "name": "ProductCard",
+      "label": "Product card",
+      "aliases": ["product card", "product", "item"],
+      "capabilities": ["commerce_display"],
+      "source_path": "src/components/webblock/ProductCard.tsx",
+      "export_name": "ProductCard",
+      "fields": {
+        "name": {"type": "text", "required": true, "max_length": 120, "semantic": "title"},
+        "description": {"type": "textarea", "max_length": 1000},
+        "price": {"type": "number", "required": true, "min": 0, "semantic": "price"},
+        "currency": {"type": "select", "options": ["USD", "KHR"], "semantic": "currency"},
+        "image": {"type": "image"}
+      },
+      "default_props": {"name": "New product", "price": 0, "currency": "USD"}
+    },
+    {
+      "name": "Testimonial",
+      "label": "Testimonial",
+      "aliases": ["testimonial", "review", "quote"],
+      "capabilities": ["static_content"],
+      "source_path": "src/components/webblock/Testimonial.tsx",
+      "export_name": "Testimonial",
+      "fields": {
+        "quote": {"type": "textarea", "required": true, "max_length": 1000},
+        "author": {"type": "text", "required": true, "max_length": 80}
+      },
+      "default_props": {"quote": "Write what a happy customer said.", "author": "Customer name"}
+    },
+    {
+      "name": "ContactForm",
+      "label": "Contact form",
+      "aliases": ["contact form", "contact", "enquiry form", "inquiry form"],
+      "capabilities": ["form_submission"],
+      "source_path": "src/components/webblock/ContactForm.tsx",
+      "export_name": "ContactForm",
+      "fields": {
+        "heading": {"type": "text", "max_length": 120, "semantic": "title"},
+        "email": {"type": "text", "max_length": 200, "label": "Send messages to (email)"},
+        "submitLabel": {"type": "text", "max_length": 40},
+        "successMessage": {"type": "text", "max_length": 200}
+      },
+      "default_props": {"heading": "Contact us", "submitLabel": "Send", "successMessage": "Thanks! Your email app will open to send the message."}
+    },
+    {
+      "name": "ContactInfo",
+      "label": "Contact & location",
+      "aliases": ["contact info", "contact details", "location", "address", "opening hours", "hours", "business contact"],
+      "capabilities": ["static_content", "business_data"],
+      "source_path": "src/components/webblock/ContactInfo.tsx",
+      "export_name": "ContactInfo",
+      "fields": {
+        "heading": {"type": "text", "max_length": 120, "semantic": "title"},
+        "source": {"type": "select", "category": "behavior", "options": ["database", "manual"], "label": "Contact details shown on the website"},
+        "address": {"type": "text", "max_length": 300},
+        "phone": {"type": "text", "max_length": 40},
+        "email": {"type": "text", "max_length": 200},
+        "hours": {"type": "textarea", "max_length": 1000, "label": "Opening hours"},
+        "contacts": {"type": "array", "item_fields": {
+          "label": {"type": "text", "required": true, "max_length": 60},
+          "kind": {"type": "select", "required": true, "options": ["phone", "email", "whatsapp", "telegram", "facebook", "instagram", "website", "other"]},
+          "value": {"type": "text", "required": true, "max_length": 300}
+        }}
+      },
+      "default_props": {"heading": "Contact & location", "source": "database", "contacts": []}
+    },
+    {
+      "name": "Columns",
+      "label": "Columns",
+      "aliases": ["columns", "grid", "row"],
+      "capabilities": ["layout"],
+      "source_path": "src/components/webblock/Columns.tsx",
+      "export_name": "Columns",
+      "fields": {
+        "gap": {"type": "number", "category": "style", "min": 0, "max": 128},
+        "left": {"type": "slot", "category": "layout"},
+        "right": {"type": "slot", "category": "layout"}
+      },
+      "default_props": {"gap": 24, "left": [], "right": []}
+    },
+    {
+      "name": "Spacer",
+      "label": "Spacer",
+      "aliases": ["spacer", "gap", "space"],
+      "capabilities": ["layout"],
+      "source_path": "src/components/webblock/Spacer.tsx",
+      "export_name": "Spacer",
+      "fields": {
+        "size": {"type": "number", "category": "style", "min": 0, "max": 256}
+      },
+      "default_props": {"size": 32}
+    },
+    {
+      "name": "Footer",
+      "label": "Footer",
+      "aliases": ["footer", "bottom"],
+      "capabilities": ["static_content", "navigation"],
+      "source_path": "src/components/webblock/Footer.tsx",
+      "export_name": "Footer",
+      "fields": {
+        "text": {"type": "text", "max_length": 300},
+        "links": {"type": "array", "item_fields": {
+          "label": {"type": "text", "required": true, "max_length": 40},
+          "href": {"type": "url", "required": true}
+        }}
+      },
+      "default_props": {"text": "", "links": []}
+    }
+  ]
+}

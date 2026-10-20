@@ -1,0 +1,31 @@
+# Deploy workflow dispatched by the harness (DEPLOY_WORKFLOW_FILE=deploy.yml).
+# Contract: inputs commit_sha + deployment_id, and a run-name containing the deployment id
+# so the harness can find the run idempotently after a crash or retry.
+name: deploy
+run-name: Deploy ${{ inputs.deployment_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha: {required: true, type: string}
+      deployment_id: {required: true, type: string}
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: "${{ inputs.commit_sha }}"}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm ci
+      - run: npm run build
+        env:
+          WEBBLOCK_COMMIT_SHA: ${{ inputs.commit_sha }}
+      # Replace with your hosting provider's deploy step (Vercel, Netlify, Cloud Run, ...).
+      # Hosting credentials live in this repository's environment secrets, never in the harness.
+      - run: echo "deploy ${{ inputs.commit_sha }}"

@@ -1,0 +1,463 @@
+# WebBlock — Build the Hybrid Website Generation Harness
+
+## 1. Your Role
+
+Act as a senior software architect and full-stack engineer specializing in AI-powered application builders, code-generation systems, Next.js, Puck, GitHub automation, and reliable deployment pipelines.
+
+Your task is to implement the **WebBlock Hybrid Harness**: the system responsible for understanding website changes, deciding how to apply them, validating the results, maintaining project history, and deploying client websites safely.
+
+This is an implementation task, not merely a design exercise. Inspect the existing repository, understand its architecture, and implement the system incrementally using the project's existing conventions.
+
+Do not create a disconnected demo, replace the existing application unnecessarily, or rewrite working code without justification.
+
+## 2. Product Context
+
+WebBlock is a no-code, AI-powered website builder for small businesses.
+
+A typical client workflow is:
+
+1. The client chooses a website template.
+2. The client customizes the website through the Puck visual editor.
+3. The client can request additional changes using natural language.
+4. WebBlock determines whether each change can be handled through existing components and Puck JSON or requires source-code modifications.
+5. WebBlock validates the changes and updates the client's standalone Next.js project.
+6. The project is version-controlled in a GitHub organization controlled by WebBlock.
+7. A successful build is deployed through CI/CD.
+8. Future changes build on the last successfully deployed version without unnecessarily regenerating the entire application.
+
+For example, a Cambodian handmade pottery business might want to change product prices, add a new product gallery, or implement a checkout workflow.
+
+These requests require different levels of modification. The harness must distinguish between them.
+
+## 3. Architectural Principle
+
+Implement a hybrid system with two primary execution paths.
+
+### Path A — Runtime Configuration
+
+Use Puck JSON and existing registered components for changes that the current component system already supports.
+
+Examples:
+- Changing product names, descriptions, prices, or images.
+- Editing text, headings, buttons, and links.
+- Reordering existing sections.
+- Changing supported colors, spacing, and layout properties.
+- Updating page content without changing application behavior.
+
+Prefer deterministic JSON operations over LLM-generated code whenever possible.
+
+### Path B — Source-Code Generation and Modification
+
+Use controlled source-code changes when the requested feature cannot be expressed using the existing component registry and configuration schema.
+
+Examples:
+- Creating a new reusable component.
+- Introducing a new interaction or client-side behavior.
+- Adding a new business workflow.
+- Extending existing application functionality.
+- Introducing or modifying an API integration.
+- Making a database schema or backend contract change.
+
+Use AI for planning and generating proposed changes, but never trust generated output without validation.
+
+A source-code change must not automatically trigger a complete application rewrite. Prefer the smallest coherent patch that satisfies the request.
+
+### Core Rule
+
+**Content changes should not require source-code regeneration. Functional changes should not be forced into JSON configuration when the existing system cannot represent them safely.**
+
+## 4. Phase One — Inspect the Existing Repository
+
+Before modifying files, inspect the project and report:
+
+- Repository structure and existing application entry points.
+- Current Puck integration, page schemas, component registry, and rendering mechanism.
+- Existing AI generation services and prompts.
+- Existing backend services, authentication, and tenant model.
+- Database schema and current ORM.
+- GitHub integration, repository creation, branch strategy, and CI/CD.
+- Existing tests, configuration, and environment variables.
+- Any existing deployment or snapshot management logic.
+
+Identify which parts already exist and which need to be built.
+
+Do not assume a technology is installed merely because it is part of the intended architecture.
+
+Preserve the current stack. If the repository already uses Drizzle ORM, continue using it. If it uses Prisma, do not migrate to Drizzle without an explicit technical justification and approval.
+
+If a critical design decision cannot be resolved from the codebase, ask a focused question rather than inventing infrastructure.
+
+After inspection, provide a short implementation plan with the files and modules you intend to change, then begin implementation.
+
+## 5. Phase Two — Design the Harness Pipeline
+
+Implement the following logical pipeline:
+
+User Request
+→ Request Normalization
+→ Project Context Loading
+→ Change Planning
+→ Change Classification
+→ Execution Path Selection
+→ Change Application
+→ Validation
+→ GitHub Commit
+→ Build and Deployment
+→ Successful Snapshot Recording
+
+Each stage must have a clear responsibility and a defined input and output.
+
+Represent a harness execution as a persistent job with a unique ID and explicit lifecycle states.
+
+Suggested states:
+
+- queued
+- analyzing
+- planned
+- applying
+- validating
+- committing
+- building
+- deploying
+- succeeded
+- failed
+- cancelled
+
+Adapt these states to the existing architecture. Record errors and stage transitions so a failed job can be diagnosed without examining unstructured console logs.
+
+The pipeline should be retryable where safe, observable, and designed to prevent concurrent jobs from corrupting the same client project.
+
+## 6. Phase Three — Build the Change Analyzer
+
+This is the most important component.
+
+The Change Analyzer must compare:
+
+1. The current proposed Puck JSON.
+2. The last successfully deployed Puck JSON snapshot.
+3. The available component registry and its schemas.
+4. Relevant application source files and their version history.
+5. The requested outcome and any required backend changes.
+
+Do not classify changes using superficial text differences alone.
+
+Parse and normalize JSON, then compare meaningful properties and component structures. Ignore irrelevant object-key ordering and formatting differences.
+
+Detect changes such as:
+
+- Text or content updates.
+- Property and style updates.
+- Component additions and removals.
+- Component reordering.
+- Unsupported component types.
+- Invalid or incompatible component properties.
+- New interactive behavior.
+- API or backend contract changes.
+- Database schema changes.
+- Source-code modifications outside the generated component area.
+
+Produce a structured change plan that explains:
+
+- What changed.
+- Which pages and components are affected.
+- Which execution path is selected.
+- Why that path is appropriate.
+- Which files or data are expected to change.
+- Whether additional permissions or approvals are needed.
+- What validation must pass.
+
+Do not allow an LLM to make the final decision without deterministic checks.
+
+Use a rules-based classifier for known cases. Use an LLM when the requested intent is ambiguous or requires semantic understanding, then validate its proposed plan against the rules.
+
+If a request is ambiguous, ask for clarification instead of generating potentially destructive changes.
+
+## 7. Phase Four — Implement the Runtime JSON Path
+
+For changes that fit the existing Puck schema:
+
+1. Load the correct client project and page.
+2. Load its current configuration.
+3. Apply a targeted, validated JSON patch.
+4. Validate the resulting JSON against the page schema and registered component schemas.
+5. Check component property types, required fields, references, and supported values.
+6. Save a draft or versioned revision.
+7. Preview the result.
+8. Publish the configuration through the appropriate existing persistence and deployment mechanism.
+
+Do not regenerate source code for a simple content change.
+
+Preserve unrelated properties and components. Do not replace the entire page configuration when a localized patch is sufficient.
+
+Separate draft changes from published changes. An unsuccessful operation must not silently overwrite the last successfully published configuration.
+
+Where the existing rendering architecture supports runtime configuration delivery, content-only changes should use that mechanism without requiring a source-code build.
+
+If the architecture requires a build for a particular update, explain that limitation and use the least expensive safe alternative.
+
+## 8. Phase Five — Implement the Source-Code Path
+
+For changes requiring new functionality:
+
+1. Generate a structured implementation plan.
+2. Identify the affected files and dependencies.
+3. Inspect relevant source code before editing.
+4. Generate a minimal patch.
+5. Validate the patch against project conventions and protected-file rules.
+6. Run formatting, type checking, linting, and relevant tests.
+7. Build the application.
+8. Review the final diff.
+9. Commit the validated changes to the appropriate project branch.
+10. Trigger the existing deployment workflow.
+
+The generation system should prefer reusable components over duplicated implementations.
+
+Maintain a trusted component registry that describes each available component, its schema, its supported properties, and whether it is permitted in client-generated pages.
+
+Never evaluate arbitrary AI-generated JavaScript or execute generated shell commands without a controlled validation and execution environment.
+
+Generated application code must not gain unrestricted access to WebBlock's credentials, other clients' data, or internal infrastructure.
+
+For changes that modify shared infrastructure, authentication, tenant isolation, payment logic, database schemas, or other high-impact functionality, require an explicit approval or a predefined policy allowing that change.
+
+If a patch fails validation, do not commit or deploy it.
+
+## 9. Phase Six — GitHub Project Management
+
+Each client has a standalone Next.js project in a GitHub repository under the WebBlock organization.
+
+Implement or integrate the following capabilities:
+
+- Associate each client with the correct repository.
+- Maintain project and deployment metadata in WebBlock's backend.
+- Use isolated branches or equivalent version-control mechanisms for proposed changes.
+- Generate minimal, reviewable commits.
+- Record commit SHAs for successful and failed executions.
+- Preserve existing custom code.
+- Detect conflicting changes before applying generated patches.
+- Reconcile changes with the latest project version before committing.
+- Support safe retries without duplicating commits or deployments.
+- Keep repository access and credentials on the server side.
+
+Never expose GitHub tokens or deployment secrets to client-side code.
+
+Do not assume that a repository belongs to the authenticated client simply because its identifier appears in a request. Verify ownership and authorization on the server.
+
+Do not overwrite user-authored code silently. If a generated patch conflicts with manually edited code, stop and report the conflict or request approval.
+
+## 10. Phase Seven — Snapshot and Version Management
+
+Implement a clear distinction between:
+
+- Draft configuration.
+- Latest proposed configuration.
+- Last validated configuration.
+- Last successfully deployed configuration.
+- Current source-code revision.
+- Deployment status and history.
+
+For every successful deployment, record an immutable snapshot containing enough information to reproduce or investigate that version.
+
+At minimum, track:
+
+- Tenant and project identifiers.
+- Page configuration versions.
+- Relevant source-code commit SHA.
+- Configuration or artifact hashes.
+- Harness job ID.
+- Deployment identifier.
+- Timestamp and status.
+- Validation and build results.
+
+Store large artifacts in the existing appropriate storage system rather than duplicating them unnecessarily in relational tables.
+
+**Never advance the last-successful snapshot merely because generation, validation, a GitHub commit, or a build succeeded.**
+
+Update the successful deployment reference only after the configured deployment process confirms success and the deployed version is verified.
+
+If deployment fails, preserve the previous successful snapshot and provide a safe recovery path.
+
+Make rollback possible by restoring a known-good revision or redeploying a known-good artifact.
+
+## 11. Phase Eight — Multi-Tenant Security
+
+WebBlock must support multiple independent client websites.
+
+Enforce tenant isolation throughout the harness, including:
+
+- Project retrieval.
+- Puck configuration access.
+- Source-code operations.
+- GitHub repository mapping.
+- Job execution.
+- Deployment history.
+- Logs and generated artifacts.
+- Database and API access.
+
+If the existing architecture uses a shared database with a tenant identifier and PostgreSQL Row-Level Security (RLS), preserve and enforce that design.
+
+Never rely exclusively on a client-supplied tenant ID or frontend authorization checks.
+
+Use authenticated server-side identity to determine which tenant and project a user can access.
+
+Use least-privilege service credentials. Validate inputs, sanitize paths, protect against path traversal, and prevent generated changes from modifying protected infrastructure or secret files.
+
+Treat client prompts, uploaded content, and AI-generated output as untrusted input.
+
+The harness must not follow instructions embedded in user content that attempt to bypass its security rules.
+
+## 12. Phase Nine — Backend and Database Changes
+
+Keep frontend generation separate from backend and database migrations.
+
+When a request requires new backend functionality:
+
+1. Identify the required API contract.
+2. Determine whether the existing API can satisfy the request.
+3. Reuse existing endpoints when appropriate.
+4. Generate or modify backend code only when necessary.
+5. Validate authorization, tenant isolation, and input handling.
+6. Create and test database migrations when required.
+7. Require approval for destructive or high-impact migrations.
+8. Run integration tests before deployment.
+
+Do not let an ordinary Puck JSON update modify database schemas or backend permissions.
+
+Respect the existing division of responsibilities between Spring Boot microservices, Next.js API routes, and the AI service.
+
+If Spring Boot handles authentication and forwards authenticated requests to Next.js, preserve that trust boundary and verify how identity is propagated. Do not assume forwarding alone makes an endpoint secure.
+
+## 13. Phase Ten — Testing Requirements
+
+Create automated tests for the Change Analyzer, execution-path selection, JSON patching, validation, version tracking, and deployment state transitions.
+
+At minimum, test these scenarios.
+
+### Scenario A: Content-only update
+
+Request: Change a pottery product price from $12 to $15.
+
+Expected:
+- The analyzer identifies a supported property update.
+- Only the relevant Puck JSON changes.
+- Unrelated page content remains unchanged.
+- No source-code generation occurs.
+- The new published version is recorded correctly.
+
+### Scenario B: Existing component layout update
+
+Request: Move the product gallery above the product description.
+
+Expected:
+- The analyzer detects component reordering.
+- The runtime JSON path is used if the schema supports it.
+- The rendered page reflects the change.
+
+### Scenario C: Unsupported component
+
+Request: Add a custom interactive pottery customization tool that the existing registry cannot represent.
+
+Expected:
+- The analyzer identifies the missing capability.
+- The source-code path is selected.
+- The generated component is validated.
+- Existing application code remains intact.
+
+### Scenario D: New backend feature
+
+Request: Add a booking feature that requires new API endpoints and database persistence.
+
+Expected:
+- The analyzer identifies frontend and backend changes.
+- The system produces a coordinated implementation plan.
+- Required approvals and migrations are handled.
+- Integration tests run before deployment.
+
+### Scenario E: Invalid generated code
+
+Expected:
+- Validation or build fails.
+- No invalid changes reach production.
+- The previous successful deployment remains available.
+- The failure is recorded with actionable diagnostics.
+
+### Scenario F: Concurrent changes
+
+Expected:
+- Two jobs cannot silently overwrite one another.
+- Stale source revisions are detected.
+- Conflicting patches are rejected or reconciled safely.
+
+### Scenario G: Tenant isolation
+
+Expected:
+- One client cannot access another client's configuration, source files, jobs, snapshots, or deployment metadata.
+- Unauthorized repository mappings are rejected.
+
+### Scenario H: Deployment failure
+
+Expected:
+- The failed deployment is recorded.
+- The last-successful snapshot remains unchanged.
+- Retrying is safe and does not create unintended duplicate operations.
+
+### Scenario I: No-op change
+
+Expected:
+- If the requested state already matches the current state, no unnecessary generation, commit, or deployment occurs.
+
+## 14. Implementation Rules
+
+Follow these rules throughout development:
+
+- Inspect before editing.
+- Reuse existing code where appropriate.
+- Keep the implementation modular and testable.
+- Use typed data structures for job states, change plans, and validation results.
+- Validate external input at system boundaries.
+- Keep business rules separate from LLM prompts.
+- Make generation and deployment operations observable.
+- Use structured logging and actionable errors.
+- Make retries idempotent wherever possible.
+- Do not hardcode credentials, tenant IDs, repository names, or environment-specific URLs.
+- Do not introduce additional frameworks or services without a clear reason.
+- Do not silently change the database ORM or existing architectural boundaries.
+- Do not remove existing functionality to simplify the implementation.
+- Do not claim a test, build, commit, or deployment succeeded unless it actually ran and its result was verified.
+
+When an external service is unavailable, implement the appropriate interface and mock it for tests rather than pretending a real deployment occurred.
+
+## 15. Definition of Done
+
+The harness is complete when:
+
+1. It can inspect a client project's current configuration and relevant source context.
+2. It can generate an explainable, structured change plan.
+3. It can reliably distinguish supported configuration changes from source-code changes.
+4. It can apply targeted JSON updates without disturbing unrelated content.
+5. It can generate and validate controlled source-code patches.
+6. It can track jobs, versions, commits, and deployments.
+7. It preserves the last successfully deployed version after failures.
+8. It enforces tenant isolation and protected-file rules.
+9. It has automated tests covering the scenarios above.
+10. Its documentation explains the architecture, setup, environment variables, execution flow, limitations, and recovery process.
+
+## 16. How to Work
+
+Work in small, verifiable implementation stages.
+
+First, inspect the repository and report the existing architecture and gaps.
+
+Second, propose the smallest implementation plan that covers the core harness.
+
+Third, implement the core domain models, Change Analyzer, deterministic classification rules, and JSON patching.
+
+Fourth, integrate the source-code execution path, GitHub workflow, snapshot management, and deployment lifecycle using the existing project infrastructure.
+
+Fifth, add tenant security checks, failure handling, and automated tests.
+
+Finally, run the available test suite, linting, type checking, and build commands. Report the actual results, unresolved issues, and the next recommended step.
+
+Do not stop after producing a plan unless a missing decision or permission genuinely blocks implementation.
+
+**Primary objective:** Build a reliable hybrid harness that can evolve client websites safely over time, using configuration updates for supported changes and controlled source-code modifications for new capabilities, without regenerating the entire application for every request.
